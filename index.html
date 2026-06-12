@@ -285,7 +285,9 @@ html,body{height:100%;font-family:var(--font);font-size:14px;color:var(--g800);b
 .tour-block{position:fixed;inset:0;z-index:9000}
 .tour-ring{position:absolute;z-index:9001;border-radius:8px;box-shadow:0 0 0 9999px rgba(1,43,58,0.55);pointer-events:none;transition:top .2s,left .2s,width .2s,height .2s}
 .tour-tip{position:fixed;z-index:9002;width:300px;max-width:88vw;background:#fff;border-radius:10px;padding:16px 18px;box-shadow:0 10px 34px rgba(0,0,0,0.28)}
-.tour-tip h3{font-size:14px;font-weight:600;color:var(--teal);margin-bottom:6px}
+.tour-tip h3{font-size:14px;font-weight:600;color:var(--teal);margin-bottom:6px;padding-right:18px}
+.tour-x{position:absolute;top:8px;right:13px;cursor:pointer;color:var(--g400);font-size:18px;line-height:1}
+.tour-x:hover{color:var(--g600)}
 .tour-tip p{font-size:12px;color:var(--g600);line-height:1.6;margin-bottom:13px}
 .tour-foot{display:flex;align-items:center;gap:8px}
 .tour-dots{display:flex;gap:5px;flex:1}
@@ -608,10 +610,12 @@ function ensureTourEls(){
   const b=document.createElement('div');b.id='tourBlock';b.className='tour-block';
   const r=document.createElement('div');r.id='tourRing';r.className='tour-ring';
   const t=document.createElement('div');t.id='tourTip';t.className='tour-tip';
+  b.onclick=function(ev){if(ev.target===b){endTour();}};
   b.appendChild(r);document.body.appendChild(b);document.body.appendChild(t);
 }
-function startTour(){showView('overview');tourI=0;ensureTourEls();renderTour();}
-function endTour(){const b=document.getElementById('tourBlock'),t=document.getElementById('tourTip');if(b){b.remove();}if(t){t.remove();}try{localStorage.setItem('peh_tour_done','1');}catch(e){}window.removeEventListener('resize',renderTour);}
+function startTour(){showView('overview');tourI=0;ensureTourEls();renderTour();document.addEventListener('keydown',tourKey);}
+function endTour(){const b=document.getElementById('tourBlock'),t=document.getElementById('tourTip');if(b){b.remove();}if(t){t.remove();}window.removeEventListener('resize',renderTour);document.removeEventListener('keydown',tourKey);}
+function tourKey(e){if(e.key==='Escape'){endTour();}}
 function tourNext(){if(tourI>=TOUR.length-1){endTour();return;}tourI++;renderTour();}
 function tourBack(){if(tourI>0){tourI--;renderTour();}}
 function renderTour(){
@@ -626,7 +630,7 @@ function renderTour(){
   const skip=tourI<TOUR.length-1?'<button class="tour-btn tour-skip" onclick="endTour()">Skip</button>':'';
   const back=tourI>0?'<button class="tour-btn tour-back" onclick="tourBack()">Back</button>':'';
   const nextLabel=tourI===TOUR.length-1?'Done':'Next';
-  tip.innerHTML='<h3>'+step.title+'</h3><p>'+step.body+'</p><div class="tour-foot"><div class="tour-dots">'+dots+'</div>'+skip+back+'<button class="tour-btn tour-next" onclick="tourNext()">'+nextLabel+'</button></div>';
+  tip.innerHTML='<span class="tour-x" onclick="endTour()">&times;</span><h3>'+step.title+'</h3><p>'+step.body+'</p><div class="tour-foot"><div class="tour-dots">'+dots+'</div>'+skip+back+'<button class="tour-btn tour-next" onclick="tourNext()">'+nextLabel+'</button></div>';
   positionTip(tip,rect,step.place);
   window.removeEventListener('resize',renderTour);window.addEventListener('resize',renderTour);
 }
@@ -639,7 +643,7 @@ function positionTip(tip,rect,place){
   top=Math.max(8,Math.min(top,vh-th-8));left=Math.max(8,Math.min(left,vw-tw-8));
   tip.style.top=top+'px';tip.style.left=left+'px';
 }
-function maybeStartTour(){let done=false;try{done=localStorage.getItem('peh_tour_done')==='1';}catch(e){}if(!done){setTimeout(startTour,350);}}
+function maybeStartTour(){setTimeout(startTour,350);}
 loadIdentity();
 renderIdentity();
 if(location.hash==='#admin'){openAdmin();}
